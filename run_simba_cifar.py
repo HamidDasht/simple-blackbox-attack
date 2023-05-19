@@ -34,6 +34,8 @@ parser.add_argument('--stride', type=int, default=7, help='stride for block orde
 parser.add_argument('--targeted', action='store_true', help='perform targeted attack')
 parser.add_argument('--pixel_attack', action='store_true', help='attack in pixel space')
 parser.add_argument('--save_suffix', type=str, default='', help='suffix appended to save file')
+parser.add_argument('--second_model', type=str, default=None, help="type of base model to user for mm defense")
+parser.add_argument('--second_model_ckpt', type=str, help="second model checkpoint location")
 args = parser.parse_args()
 
 if not os.path.exists(args.result_dir):
@@ -47,6 +49,16 @@ model = torch.nn.DataParallel(model)
 checkpoint = torch.load(args.model_ckpt)
 model.load_state_dict(checkpoint['net'])
 model.eval()
+# load second model
+if args.second_model != None:
+    if args.second_model_ckpt == None:
+        parser.error('--second_model reqiures --second_model_ckpt')
+    second_model = getattr(models, args.second_model)().cuda()
+    second_model = torch.nn.DataParallel(second_model)
+    second_model_ckpt = torch.load(args.second_model_ckpt)
+    second_model.load_state_dict(second_model_ckpt['net'])
+    second_model.eval()
+    
 image_size = 32
 testset = dset.CIFAR10(root=args.data_root, train=False, download=True, transform=utils.CIFAR_TRANSFORM)
 attacker = SimBA(model, 'cifar', image_size)

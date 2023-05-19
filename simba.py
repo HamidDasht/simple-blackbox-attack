@@ -5,11 +5,14 @@ import utils
 
 class SimBA:
     
-    def __init__(self, model, dataset, image_size):
+    def __init__(self, model, dataset, image_size, second_model=None):
         self.model = model
         self.dataset = dataset
         self.image_size = image_size
+        self.second_model = second_model
         self.model.eval()
+        if self.second_model != None:
+            self.second_model.eval()
     
     def expand_vector(self, x, size):
         batch_size = x.size(0)
@@ -22,12 +25,20 @@ class SimBA:
         return utils.apply_normalization(x, self.dataset)
 
     def get_probs(self, x, y):
-        output = self.model(self.normalize(x.cuda())).cpu()
+        if self.second_model == None:
+            output = self.model(self.normalize(x.cuda())).cpu()
+        else:
+            selected_model = self.model if torch.randn(1).item() > 0.5 else self.second_model
+            output = selected_model(self.normalize(x.cuda())).cpu()
         probs = torch.index_select(F.softmax(output, dim=-1).data, 1, y)
         return torch.diag(probs)
     
     def get_preds(self, x):
-        output = self.model(self.normalize(x.cuda())).cpu()
+        if self.second_model == None:
+            output = self.model(self.normalize(x.cuda())).cpu()
+        else:
+            selected_model = self.model if torch.randn(1).item() > 0.5 else self.second_model
+            output = selected_model(self.normalize(x.cuda())).cpu()
         _, preds = output.data.max(1)
         return preds
 
