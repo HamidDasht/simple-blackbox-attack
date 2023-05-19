@@ -61,7 +61,7 @@ if args.second_model != None:
     
 image_size = 32
 testset = dset.CIFAR10(root=args.data_root, train=False, download=True, transform=utils.CIFAR_TRANSFORM)
-attacker = SimBA(model, 'cifar', image_size)
+attacker = SimBA(model, 'cifar', image_size, second_model)
 
 # load sampled images or sample new ones
 # this is to ensure all attacks are run on the same set of correctly classified images
