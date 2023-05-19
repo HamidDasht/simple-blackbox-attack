@@ -28,7 +28,7 @@ class SimBA:
         if self.second_model == None:
             output = self.model(self.normalize(x.cuda())).cpu()
         else:
-            selected_model = self.model if torch.randn(1).item() > 0.5 else self.second_model
+            selected_model = self.model if torch.rand(1).item() > 0.5 else self.second_model
             output = selected_model(self.normalize(x.cuda())).cpu()
         probs = torch.index_select(F.softmax(output, dim=-1).data, 1, y)
         return torch.diag(probs)
@@ -37,7 +37,7 @@ class SimBA:
         if self.second_model == None:
             output = self.model(self.normalize(x.cuda())).cpu()
         else:
-            selected_model = self.model if torch.randn(1).item() > 0.5 else self.second_model
+            selected_model = self.model if torch.rand(1).item() > 0.5 else self.second_model
             output = selected_model(self.normalize(x.cuda())).cpu()
         _, preds = output.data.max(1)
         return preds
